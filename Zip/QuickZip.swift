@@ -47,7 +47,7 @@ extension Zip {
         let documentsUrl = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0] as URL
         do {
             let destinationUrl = documentsUrl.appendingPathComponent(directoryName, isDirectory: true)
-            try self.unzipFile(path, destination: destinationUrl, overwrite: true, password: nil, progress: progress)
+            _ = try self.unzipFile(path, destination: destinationUrl, overwrite: true, password: nil, progress: progress)
             return destinationUrl
         }catch{
             throw(ZipError.unzipFail)
