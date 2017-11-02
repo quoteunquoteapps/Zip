@@ -82,7 +82,7 @@ public class Zip {
 	- notes: Supports implicit progress composition
 	*/
 
-	public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, progress: ((_ progress: Double) -> ())?) throws -> String {
+	public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, progress: ((_ progress: Double) -> ())?) throws -> String? {
 
 		var savePath = ""
 
@@ -93,7 +93,7 @@ public class Zip {
 		let path = zipFilePath.path
 
 		if fileManager.fileExists(atPath: path) == false || fileExtensionIsInvalid(zipFilePath.pathExtension) {
-			throw ZipError.fileNotFound
+			return nil //throw ZipError.fileNotFound
 		}
 
 		// Unzip set up
@@ -121,7 +121,7 @@ public class Zip {
 			unzClose(zip)
 		}
 		if unzGoToFirstFile(zip) != UNZ_OK {
-			throw ZipError.unzipFail
+			return nil // throw ZipError.unzipFail
 		}
 		repeat {
 			if let cPassword = password?.cString(using: String.Encoding.ascii) {
@@ -131,14 +131,14 @@ public class Zip {
 				ret = unzOpenCurrentFile(zip);
 			}
 			if ret != UNZ_OK {
-				throw ZipError.unzipFail
+				return nil // throw ZipError.unzipFail
 			}
 			var fileInfo = unz_file_info64()
 			memset(&fileInfo, 0, MemoryLayout<unz_file_info>.size)
 			ret = unzGetCurrentFileInfo64(zip, &fileInfo, nil, 0, nil, 0, nil, 0)
 			if ret != UNZ_OK {
 				unzCloseCurrentFile(zip)
-				throw ZipError.unzipFail
+				return nil // throw ZipError.unzipFail
 			}
 			currentPosition += Double(fileInfo.compressed_size)
 			let fileNameSize = Int(fileInfo.size_filename) + 1
@@ -150,8 +150,8 @@ public class Zip {
 
 			var pathString = String(cString: fileName)
 
-			guard pathString.characters.count > 0 else {
-				throw ZipError.unzipFail
+			guard pathString.utf16.count > 0 else {
+				return nil // throw ZipError.unzipFail
 			}
 
 			var isDirectory = false
@@ -171,11 +171,10 @@ public class Zip {
 			}
 
 			let creationDate = Date()
-			let directoryAttributes = [FileAttributeKey.creationDate.rawValue : creationDate,
-			                           FileAttributeKey.modificationDate.rawValue : creationDate]
+			let directoryAttributes: [FileAttributeKey: Any] = [.creationDate: creationDate, .modificationDate : creationDate]
 			do {
 				if isDirectory {
-					try fileManager.createDirectory(atPath: fullPath, withIntermediateDirectories: true, attributes: directoryAttributes)
+					try fileManager.createDirectory(atPath: fullPath, withIntermediateDirectories: true, attributes: directoryAttributes)					
 				}
 				else {
 					let parentDirectory = (fullPath as NSString).deletingLastPathComponent
@@ -201,7 +200,7 @@ public class Zip {
 			fclose(filePointer)
 			crc_ret = unzCloseCurrentFile(zip)
 			if crc_ret == UNZ_CRCERROR {
-				throw ZipError.unzipFail
+				return nil // throw ZipError.unzipFail
 			}
 
 			//Set file permissions from current fileInfo
