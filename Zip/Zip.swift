@@ -166,7 +166,7 @@ public class Zip {
 
 			let fullPath = destination.appendingPathComponent(pathString).path
 			let components = pathString.components(separatedBy: "/")
-			if let path = components.first {
+			if let path = components.first, path.utf16.count > 0, !path.hasPrefix("__MACOS") {
 				savePath = path
 			}
 
