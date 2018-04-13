@@ -396,7 +396,7 @@ public class Zip {
 	*/
 	public class func isValidFileExtension(_ fileExtension: String) -> Bool {
 
-		let validFileExtensions: Set<String> = customFileExtensions.union(["zip", "cbz"])
+		let validFileExtensions: Set<String> = customFileExtensions.union(["zip", "cbz", "textpack", "highland"])
 
 		return validFileExtensions.contains(fileExtension)
 	}
