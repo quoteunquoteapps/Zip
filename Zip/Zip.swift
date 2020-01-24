@@ -67,6 +67,17 @@ public class Zip {
 	}
 
 	// MARK: Unzip
+    public class func unzipData(_ zipData: Data, password: String? = nil, progress: ((_ progress: Double) -> ())? = nil) throws -> FileWrapper {
+        let cacheDirectory = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let filename = UUID().uuidString
+        let zipURL = cacheDirectory.appendingPathComponent("\(filename).zip")
+        try! zipData.write(to: zipURL)
+        guard let unzippedFilename = try Zip.unzipFile(zipURL, destination: cacheDirectory, overwrite: true, password: password, progress: progress) else {
+            throw NSError()
+        }
+        let fileURL = cacheDirectory.appendingPathComponent("\(unzippedFilename)")
+        return try FileWrapper(url: fileURL, options: [.immediate])
+    }
 
 	/**
 	Unzip file
